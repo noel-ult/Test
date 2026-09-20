@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Live Real-time Price Tracker & Digital Clock">
+  <title>Live Price Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at 50% 0%, #1a1f35 0%, #0a0c16 100%);
+      --card-bg: rgba(22, 27, 46, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.35);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.3);
+      --red: #f43f5e;
+      --red-glow: rgba(244, 63, 94, 0.3);
+      --badge-bg: rgba(99, 102, 241, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      overflow-x: hidden;
+    }
+
+    /* Background Ambient Glows */
+    .ambient-glow {
+      position: fixed;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+    .glow-1 {
+      top: -100px;
+      left: 20%;
+      background: #4f46e5;
+    }
+    .glow-2 {
+      bottom: -150px;
+      right: 20%;
+      background: #06b6d4;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* Glass Cards */
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      box-shadow: var(--card-shadow);
+      padding: 1.75rem;
+      transition: transform 0.25s ease, border-color 0.25s ease;
+    }
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+
+    /* Clock Card */
+    .clock-card {
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .card-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--green);
+      box-shadow: 0 0 10px var(--green);
+      animation: pulse-dot 2s infinite ease-in-out;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.5; }
+    }
+
+    .time-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2.75rem;
+      font-weight: 600;
+      color: #ffffff;
+      letter-spacing: 0.02em;
+      margin: 0.25rem 0;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+    }
+    .date-display {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 400;
+    }
+
+    /* Price Card */
+    .price-card {
+      text-align: center;
+      position: relative;
+    }
+    .price-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+    .update-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.75rem;
+      background: var(--badge-bg);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #818cf8;
+    }
+    .update-badge svg {
+      animation: rotate 4s linear infinite;
+    }
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .price-container {
+      margin: 1.25rem 0;
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 0.25rem;
+    }
+    .currency-symbol {
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .price-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 3.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      transition: color 0.3s ease, transform 0.2s ease;
+    }
+    .price-value.flash-up {
+      color: var(--green);
+      text-shadow: 0 0 25px var(--green-glow);
+      transform: scale(1.03);
+    }
+    .price-value.flash-down {
+      color: var(--red);
+      text-shadow: 0 0 25px var(--red-glow);
+      transform: scale(0.97);
+    }
+
+    .delta-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 0.3rem 0.7rem;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      transition: all 0.3s ease;
+    }
+    .delta-badge.up {
+      color: var(--green);
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+    .delta-badge.down {
+      color: var(--red);
+      background: rgba(244, 63, 94, 0.12);
+      border: 1px solid rgba(244, 63, 94, 0.25);
+    }
+    .delta-badge.neutral {
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Progress Countdown Bar */
+    .timer-section {
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .timer-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+    .progress-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #6366f1, #06b6d4);
+      border-radius: 9999px;
+      transition: width 0.1s linear;
+    }
+
+    /* Footer Info */
+    footer {
+      text-align: center;
+      color: #64748b;
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+    }
+    footer code {
+      font-family: 'JetBrains Mono', monospace;
+      color: #94a3b8;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <main class="container">
+    <header>
+      <h1>Express Real-time Monitor</h1>
+      <p class="subtitle">Live Digital Clock & Random Walk Asset Price</p>
+    </header>
+
+    <!-- Digital Clock Card -->
+    <section class="card clock-card" id="clockSection" aria-label="Digital Clock">
+      <div class="card-label">
+        <span class="live-dot" aria-hidden="true"></span>
+        <span>Live System Time</span>
+      </div>
+      <div class="time-display" id="clockDisplay">00:00:00</div>
+      <div class="date-display" id="dateDisplay">Loading date...</div>
+    </section>
+
+    <!-- Current Price Card -->
+    <section class="card price-card" id="priceSection" aria-label="Current Price Monitor">
+      <div class="price-header">
+        <div class="card-label" style="margin-bottom: 0;">Current Price</div>
+        <div class="update-badge" title="Server generates new price every 5 seconds">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          <span>Updates every 5s</span>
+        </div>
+      </div>
+
+      <div class="price-container">
+        <span class="currency-symbol">$</span>
+        <span class="price-value" id="priceDisplay">100.00</span>
+      </div>
+
+      <div>
+        <span class="delta-badge neutral" id="deltaBadge">
+          <span id="deltaIcon">—</span>
+          <span id="deltaValue">Initial Price</span>
+        </span>
+      </div>
+
+      <div class="timer-section">
+        <div class="timer-info">
+          <span>Next price sync</span>
+          <span id="countdownText">5.0s</span>
+        </div>
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <span>API Endpoint: <code>GET /price</code> &bull; Polling interval: 5 seconds</span>
+    </footer>
+  </main>
+
+  <script>
+    // ----------------------------------------------------
+    // 1. Digital Clock (Updates every second)
+    // ----------------------------------------------------
+    const clockDisplay = document.getElementById('clockDisplay');
+    const dateDisplay = document.getElementById('dateDisplay');
+
+    function updateClock() {
+      const now = new Date();
+      
+      const timeStr = now.toLocaleTimeString('en-US', {
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+      
+      const dateStr = now.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+
+      clockDisplay.textContent = timeStr;
+      dateDisplay.textContent = dateStr;
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // ----------------------------------------------------
+    // 2. Price Fetching & UI Update (Every 5 seconds)
+    // ----------------------------------------------------
+    const priceDisplay = document.getElementById('priceDisplay');
+    const deltaBadge = document.getElementById('deltaBadge');
+    const deltaIcon = document.getElementById('deltaIcon');
+    const deltaValue = document.getElementById('deltaValue');
+    const progressBar = document.getElementById('progressBar');
+    const countdownText = document.getElementById('countdownText');
+
+    let lastPrice = 100.00;
+    const POLL_INTERVAL_MS = 5000;
+    let nextFetchTime = Date.now() + POLL_INTERVAL_MS;
+
+    async function fetchPrice() {
+      try {
+        const response = await fetch('/price');
+        if (!response.ok) {
+          throw new Error('Network response was not ok (' + response.status + ')');
+        }
+        const data = await response.json();
+        const newPrice = Number(data.price);
+
+        if (!isNaN(newPrice)) {
+          // Format with exactly 2 decimal places
+          priceDisplay.textContent = newPrice.toFixed(2);
+
+          const diff = newPrice - lastPrice;
+
+          // Flash animation and badges
+          priceDisplay.classList.remove('flash-up', 'flash-down');
+          void priceDisplay.offsetWidth; // trigger reflow
+
+          if (Math.abs(diff) < 0.001) {
+            deltaBadge.className = 'delta-badge neutral';
+            deltaIcon.textContent = '—';
+            deltaValue.textContent = 'No change';
+          } else if (diff > 0) {
+            priceDisplay.classList.add('flash-up');
+            deltaBadge.className = 'delta-badge up';
+            deltaIcon.textContent = '▲';
+            deltaValue.textContent = `+$${diff.toFixed(2)}`;
+          } else {
+            priceDisplay.classList.add('flash-down');
+            deltaBadge.className = 'delta-badge down';
+            deltaIcon.textContent = '▼';
+            deltaValue.textContent = `-$${Math.abs(diff).toFixed(2)}`;
+          }
+
+          lastPrice = newPrice;
+        }
+      } catch (err) {
+        console.error('Error fetching price:', err);
+      } finally {
+        nextFetchTime = Date.now() + POLL_INTERVAL_MS;
+      }
+    }
+
+    // Initial price fetch
+    fetchPrice();
+
+    // Schedule regular polling
+    setInterval(fetchPrice, POLL_INTERVAL_MS);
+
+    // ----------------------------------------------------
+    // 3. Smooth Countdown Bar
+    // ----------------------------------------------------
+    function updateCountdown() {
+      const remainingMs = Math.max(0, nextFetchTime - Date.now());
+      const progressPercent = (remainingMs / POLL_INTERVAL_MS) * 100;
+      
+      progressBar.style.width = progressPercent.toFixed(1) + '%';
+      countdownText.textContent = (remainingMs / 1000).toFixed(1) + 's';
+      requestAnimationFrame(updateCountdown);
+    }
+    requestAnimationFrame(updateCountdown);
+  </script>
+</body>
+</html>
