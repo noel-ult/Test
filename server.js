@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,12 +13,50 @@ function getTimestamp() {
   return new Date().toISOString().replace('T', ' ').substring(0, 19);
 }
 
-// Serve static assets from public folder
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve static assets from public folder (disable automatic index.html serving)
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
-// Root route
+// Root route - Server-Side Rendered (SSR)
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  const templatePath = path.join(__dirname, 'public', 'index.html');
+  const template = fs.readFileSync(templatePath, 'utf8');
+  const now = new Date();
+
+  const timeStr = now.toLocaleTimeString('en-US', {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+
+  const dateStr = now.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
+  const renderedHtml = template
+    .replace(
+      /<span class="price-value" id="priceDisplay">[^<]*<\/span>/,
+      `<span class="price-value" id="priceDisplay">${currentPrice.toFixed(2)}</span>`
+    )
+    .replace(
+      /<div class="time-display" id="clockDisplay">[^<]*<\/div>/,
+      `<div class="time-display" id="clockDisplay">${timeStr}</div>`
+    )
+    .replace(
+      /<div class="date-display" id="dateDisplay">[^<]*<\/div>/,
+      `<div class="date-display" id="dateDisplay">${dateStr}</div>`
+    )
+    .replace(
+      '<!-- SSR_TIMESTAMP -->',
+      `<!-- SSR Rendered: ${now.toISOString()} -->\n  <meta name="ssr-rendered-at" content="${now.toISOString()}">`
+    );
+
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(renderedHtml);
 });
 
 // API endpoint returning current price in JSON format

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Live Real-time Price Tracker & Digital Clock">
+  <!-- SSR_TIMESTAMP -->
   <title>Live Price Tracker</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -392,7 +393,7 @@
     const progressBar = document.getElementById('progressBar');
     const countdownText = document.getElementById('countdownText');
 
-    let lastPrice = 100.00;
+    let lastPrice = Number(document.getElementById('priceDisplay').textContent) || 100.00;
     const POLL_INTERVAL_MS = 5000;
     let nextFetchTime = Date.now() + POLL_INTERVAL_MS;
 
