@@ -31,3 +31,7 @@ No automated tests, lint script, or build step is declared. Edit the HTML for pr
 
 - [Source, command, and configuration reference](docs/REFERENCE.md)
 - [Contributing](CONTRIBUTING.md)
+
+<!-- developer-handbook-20261028 -->
+[Source reference](docs/REFERENCE.md) · [Verification and operations](docs/OPERATIONS.md)
+<!-- /developer-handbook-20261028 -->
