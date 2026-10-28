@@ -1,7 +1,6 @@
 # Test source reference
 
-
-Source reviewed: [`ab88d31b104c`](https://github.com/noel-ult/Test/commit/ab88d31b104cd2f4cb86dd46bd21e95089fe2bb7).
+Source reviewed: [`0870d1f30aad`](https://github.com/noel-ult/Test/commit/0870d1f30aada9caa97b788dd878160ee151a49f).
 
 This reference records the checked-in source, scripts, configuration names, and route declarations. It is a navigation aid; service availability and successful test execution require separate verification.
 
@@ -39,7 +38,9 @@ Paths are **as declared in each source file**. Router/blueprint mount prefixes f
 
 Historical plans/reports describe their own revision; use current source when they disagree.
 
+- [CONTRIBUTING.md](../CONTRIBUTING.md)
 - [README.md](../README.md)
+- [docs/REFERENCE.md](../docs/REFERENCE.md)
 
 ## Source and configuration map
 
